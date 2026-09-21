@@ -1,0 +1,42 @@
+version: "3"
+
+services:
+  heap-mysql:
+    image: docker.io/library/mysql:8.4
+    container_name: heap-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    volumes:
+      - heap-mysql-data:/var/lib/mysql
+    networks:
+      - heap-net
+
+  heap-server:
+    build:
+      context: ..
+      dockerfile: podman/Containerfile
+    container_name: heap-server
+    restart: unless-stopped
+    depends_on:
+      - heap-mysql
+    environment:
+      DB_HOST: heap-mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      API_KEY: ${API_KEY}
+    ports:
+      - "8080:8080"
+    networks:
+      - heap-net
+
+networks:
+  heap-net:
+
+volumes:
+  heap-mysql-data:

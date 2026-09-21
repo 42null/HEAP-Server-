@@ -1,0 +1,49 @@
+### Java / Maven ###
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+### Spring Boot ###
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### IDE ###
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Logs ###
+*.log
+logs/
+
+### Environment / secrets — never commit real values ###
+.env
+.env.*
+!.env.example
+application-local.yml
+application-local.yaml
+application-secrets.yml
+application-secrets.yaml
+podman/.env
+podman/*.local.yml
+
+### Podman / container runtime local state ###
+*.pid
