@@ -33,7 +33,6 @@ cd podman
 podman-compose -f heap-pod.yml up -d
 ```
 
-
 ## Roadmap
 
 See the HEAP roadmap document for the full phase plan (subject to changes)
