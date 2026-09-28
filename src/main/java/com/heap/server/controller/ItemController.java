@@ -1,20 +1,20 @@
+// src/main/java/com/heap/server/controller/ItemController.java
 package com.heap.server.controller;
 
 import com.heap.server.dto.DailyDetailsPayload;
 import com.heap.server.dto.ItemRequest;
 import com.heap.server.dto.ItemResponse;
-import com.heap.server.entity.DailyDetails;
-import com.heap.server.entity.Item;
-import com.heap.server.entity.ItemType;
-import com.heap.server.entity.Tag;
+import com.heap.server.entity.*;
 import com.heap.server.repository.DailyDetailsRepository;
+import com.heap.server.repository.ItemMetadataRepository;
 import com.heap.server.repository.ItemRepository;
 import com.heap.server.repository.TagRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.HashSet;
 import java.util.List;
@@ -23,32 +23,32 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/items")
+@Transactional
 public class ItemController {
 
     private final ItemRepository itemRepository;
+    private final ItemMetadataRepository itemMetadataRepository;
     private final DailyDetailsRepository dailyDetailsRepository;
-    private final TagRepository tagRepository;
+private final TagRepository tagRepository;
 
     public ItemController(ItemRepository itemRepository,
+                           ItemMetadataRepository itemMetadataRepository,
                            DailyDetailsRepository dailyDetailsRepository,
                            TagRepository tagRepository) {
         this.itemRepository = itemRepository;
+        this.itemMetadataRepository = itemMetadataRepository;
         this.dailyDetailsRepository = dailyDetailsRepository;
         this.tagRepository = tagRepository;
     }
 
     @GetMapping
     public List<ItemResponse> listItems() {
-        return itemRepository.findAllByOrderByPriorityDescDueDateAscCreatedAtAsc()
-            .stream()
-            .map(this::toResponse)
-            .collect(Collectors.toList());
+        return itemRepository.findAllByOrderByPriorityDescDueDateAscIdAsc().stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     public ItemResponse getItem(@PathVariable Long id) {
-        Item item = itemRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        Item item = itemRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         return toResponse(item);
     }
 
@@ -56,13 +56,19 @@ public class ItemController {
     @ResponseStatus(HttpStatus.CREATED)
     public ItemResponse createItem(@Valid @RequestBody ItemRequest request) {
         if (request.type() == ItemType.DAILY && request.daily() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                "daily details are required when type = DAILY");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "daily details are required when type = DAILY");
         }
 
         Item item = new Item();
         applyRequest(item, request);
         item = itemRepository.save(item);
+
+        ItemMetadata metadata = new ItemMetadata();
+        metadata.setItem(item);
+        metadata.setVersion(1L);
+        metadata.setCreatedBy(request.createdBy() != null ? request.createdBy() : "api-user");
+        metadata.setSource(request.source() != null ? request.source() : "api");
+        itemMetadataRepository.save(metadata);
 
         if (request.type() == ItemType.DAILY) {
             saveDailyDetails(item, request.daily());
@@ -73,11 +79,15 @@ public class ItemController {
 
     @PutMapping("/{id}")
     public ItemResponse updateItem(@PathVariable Long id, @Valid @RequestBody ItemRequest request) {
-        Item item = itemRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        Item item = itemRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         applyRequest(item, request);
         item = itemRepository.save(item);
+
+        itemMetadataRepository.findById(item.getId()).ifPresent(m -> {
+            m.setVersion(m.getVersion() + 1);
+            itemMetadataRepository.save(m);
+        });
 
         if (request.type() == ItemType.DAILY) {
             saveDailyDetails(item, request.daily());
@@ -97,23 +107,19 @@ public class ItemController {
         itemRepository.deleteById(id);
     }
 
-    // --- helpers ---
-
     private void applyRequest(Item item, ItemRequest request) {
         item.setType(request.type());
         item.setTitle(request.title());
         item.setNotes(request.notes());
         item.setDueDate(request.dueDate());
         item.setPriority(request.priority());
-        item.setDone(request.done() != null && request.done());
+        item.setStatus(request.status() != null ? request.status() : ItemStatus.BACKLOG);
         item.setTags(resolveTags(request.tagNames()));
     }
 
     private Set<Tag> resolveTags(List<String> tagNames) {
         Set<Tag> tags = new HashSet<>();
-        if (tagNames == null) {
-            return tags;
-        }
+        if (tagNames == null) return tags;
         for (String name : tagNames) {
             if (name == null || name.isBlank()) continue;
             Tag tag = tagRepository.findByName(name)
@@ -128,8 +134,7 @@ public class ItemController {
     }
 
     private void saveDailyDetails(Item item, DailyDetailsPayload payload) {
-        DailyDetails details = dailyDetailsRepository.findById(item.getId())
-            .orElseGet(DailyDetails::new);
+        DailyDetails details = dailyDetailsRepository.findById(item.getId()).orElseGet(DailyDetails::new);
         details.setItem(item);
         details.setNotifyTime(payload.notifyTime());
         details.setRepeatsMonday(payload.monday());
@@ -139,8 +144,6 @@ public class ItemController {
         details.setRepeatsFriday(payload.friday());
         details.setRepeatsSaturday(payload.saturday());
         details.setRepeatsSunday(payload.sunday());
-        // streak_count / last_completed_date are managed by completion logic,
-        // not overwritten wholesale on every edit - keep existing values if present.
         dailyDetailsRepository.save(details);
     }
 
@@ -156,18 +159,17 @@ public class ItemController {
                 .orElse(null);
         }
 
+        ItemMetadata metadata = itemMetadataRepository.findById(item.getId()).orElse(null);
+
         return new ItemResponse(
-            item.getId(),
-            item.getType(),
-            item.getTitle(),
-            item.getNotes(),
-            item.getDueDate(),
-            item.getPriority(),
-            item.isDone(),
+            item.getId(), item.getType(), item.getTitle(), item.getNotes(),
+            item.getDueDate(), item.getPriority(), item.getStatus(),
             item.getTags().stream().map(Tag::getName).collect(Collectors.toList()),
-            dailyPayload,
-            item.getCreatedAt(),
-            item.getUpdatedAt()
+            dailyPayload, item.getUpdatedAt(),
+            metadata != null ? metadata.getCreatedAt() : null,
+            metadata != null ? metadata.getCreatedBy() : null,
+            metadata != null ? metadata.getSource() : null,
+            metadata != null ? metadata.getVersion() : null
         );
     }
 }

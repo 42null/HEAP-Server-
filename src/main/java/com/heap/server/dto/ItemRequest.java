@@ -1,20 +1,20 @@
+// src/main/java/com/heap/server/dto/ItemRequest.java
 package com.heap.server.dto;
 
+import com.heap.server.entity.ItemStatus;
 import com.heap.server.entity.ItemType;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-
 import java.time.LocalDate;
 import java.util.List;
 
 public record ItemRequest(
-    @NotNull ItemType type,
-    @NotBlank String title,
+    ItemType type,
+    String title,
     String notes,
     LocalDate dueDate,
     Integer priority,
-    Boolean done,
+    ItemStatus status,       // optional — defaults to BACKLOG
     List<String> tagNames,
-    // Required when type = DAILY, ignored otherwise
-    DailyDetailsPayload daily
+    DailyDetailsPayload daily,
+    String createdBy,        // optional — defaults to "api-user"
+    String source            // optional — defaults to "api"
 ) {}

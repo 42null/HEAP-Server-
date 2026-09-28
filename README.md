@@ -2,7 +2,7 @@
 
 This is the self-hosted backend for HEAP. It's yet another TODO tracker and accountability project.
 
-HEAP is built to reduce friction in adding and tracking tacks. It aims to accept tasks from many sources, and to make their tracking and accountability low-effort. A TODO system shouldn't consume the brainpower it's being used to focus. Data doesn't have to be complete, and it's the tool's job to take care of offload work from user.
+HEAP is built to reduce friction in adding and tracking tacks. It aims to accept tasks from many sources, and to make their tracking and accountability low-effort. A TODO system shouldn't consume the brainpower it's being used to focus. Data doesn't have to be complete, it's the tool's job to take care of offloading work from the user.
 
 Included in this repo
 - Podman definitions

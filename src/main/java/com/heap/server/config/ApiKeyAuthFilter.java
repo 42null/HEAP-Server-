@@ -10,10 +10,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-// Simple single-user API key check. Every request needs
-// header "X-API-Key: <the configured key>" except /health.
-// Not a substitute for HTTPS - put this behind Tailscale/VPN or TLS
-// before exposing it beyond your home network.
 @Component
 public class ApiKeyAuthFilter extends OncePerRequestFilter {
 
@@ -27,7 +23,12 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                      HttpServletResponse response,
                                      FilterChain filterChain) throws ServletException, IOException {
-        if (request.getRequestURI().equals("/health")) {
+
+        String path = request.getRequestURI();
+        if (path.equals("/health")
+                || path.equals("/swagger-ui.html")
+                || path.startsWith("/swagger-ui/")
+                || path.startsWith("/v3/api-docs")) {
             filterChain.doFilter(request, response);
             return;
         }

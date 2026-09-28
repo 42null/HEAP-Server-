@@ -1,8 +1,7 @@
+// src/main/java/com/heap/server/entity/Item.java
 package com.heap.server.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -20,8 +19,6 @@ public class Item {
     @Column(nullable = false, length = 20)
     private ItemType type;
 
-    @NotBlank
-    @Column(nullable = false)
     private String title;
 
     @Column(columnDefinition = "TEXT")
@@ -32,11 +29,9 @@ public class Item {
 
     private Integer priority;
 
-    @Column(nullable = false)
-    private boolean done = false;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private ItemStatus status = ItemStatus.BACKLOG;
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
@@ -50,42 +45,25 @@ public class Item {
     private Set<Tag> tags = new HashSet<>();
 
     @PrePersist
-    void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        createdAt = now;
-        updatedAt = now;
-    }
+    void onCreate() { updatedAt = LocalDateTime.now(); }
 
     @PreUpdate
-    void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
-    // --- getters / setters ---
+    void onUpdate() { updatedAt = LocalDateTime.now(); }
 
     public Long getId() { return id; }
-
     public ItemType getType() { return type; }
     public void setType(ItemType type) { this.type = type; }
-
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
-
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
-
     public LocalDate getDueDate() { return dueDate; }
     public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
-
     public Integer getPriority() { return priority; }
     public void setPriority(Integer priority) { this.priority = priority; }
-
-    public boolean isDone() { return done; }
-    public void setDone(boolean done) { this.done = done; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
+    public ItemStatus getStatus() { return status; }
+    public void setStatus(ItemStatus status) { this.status = status; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
-
     public Set<Tag> getTags() { return tags; }
     public void setTags(Set<Tag> tags) { this.tags = tags; }
 }
