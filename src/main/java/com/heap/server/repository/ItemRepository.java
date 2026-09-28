@@ -1,4 +1,3 @@
-// src/main/java/com/heap/server/repository/ItemRepository.java
 package com.heap.server.repository;
 
 import com.heap.server.entity.Item;

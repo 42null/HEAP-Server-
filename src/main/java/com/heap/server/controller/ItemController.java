@@ -1,4 +1,3 @@
-// src/main/java/com/heap/server/controller/ItemController.java
 package com.heap.server.controller;
 
 import com.heap.server.dto.DailyDetailsPayload;

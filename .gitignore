@@ -37,6 +37,7 @@ logs/
 ### Environment / secrets — never commit real values ###
 .env
 .env.*
+*.env
 !.env.example
 application-local.yml
 application-local.yaml

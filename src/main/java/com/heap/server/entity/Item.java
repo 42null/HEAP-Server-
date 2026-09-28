@@ -1,4 +1,3 @@
-// src/main/java/com/heap/server/entity/Item.java
 package com.heap.server.entity;
 
 import jakarta.persistence.*;

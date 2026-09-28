@@ -1,4 +1,3 @@
-// src/main/java/com/heap/server/dto/ItemRequest.java
 package com.heap.server.dto;
 
 import com.heap.server.entity.ItemStatus;
