@@ -17,4 +17,10 @@ spring:
     locations: classpath:db/migration
 
 app:
-  api-key: ${API_KEY:changeme}
+  security:
+    # Required, >= 32 chars. Signs and verifies the Bearer tokens.
+    jwt-secret: ${HEAP_SERVER_JWT_SECRET}
+    token-ttl: 1h
+    # The single local login. Password has no default on purpose.
+    username: ${HEAP_USERNAME:admin}
+    password: ${HEAP_PASSWORD}

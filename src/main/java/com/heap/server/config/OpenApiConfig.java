@@ -13,14 +13,14 @@ public class OpenApiConfig {
 
     @Bean
     public OpenAPI heapOpenAPI() {
-        String scheme = "ApiKeyAuth";
+        String scheme = "BearerAuth";
         return new OpenAPI()
             .info(new Info().title("HEAP Server API").version("0.1.0"))
             .addSecurityItem(new SecurityRequirement().addList(scheme))
             .components(new Components().addSecuritySchemes(scheme,
                 new SecurityScheme()
-                    .type(SecurityScheme.Type.APIKEY)
-                    .in(SecurityScheme.In.HEADER)
-                    .name("X-API-Key")));
+                    .type(SecurityScheme.Type.HTTP)
+                    .scheme("bearer")
+                    .bearerFormat("JWT")));
     }
 }

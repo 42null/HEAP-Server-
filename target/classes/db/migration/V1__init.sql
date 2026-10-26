@@ -68,3 +68,4 @@ CREATE TABLE item_field_source (
         REFERENCES item (id) ON DELETE CASCADE,
     INDEX idx_item_field_source_source (source)
 ) ENGINE=InnoDB;
+

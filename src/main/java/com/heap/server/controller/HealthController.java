@@ -5,8 +5,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
-// Deliberately excluded from API-key auth (see ApiKeyAuthFilter) so you can
-// verify the container is up without needing credentials.
+// Public (see SecurityConfig.PUBLIC_PATHS) so you can
+// verify the container is up without needing a token.
 @RestController
 public class HealthController {
 

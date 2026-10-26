@@ -15,7 +15,6 @@ public record ItemResponse(
     Integer priority,
     ItemStatus status,
     List<String> tags,
-    DailyDetailsPayload daily,
     LocalDateTime updatedAt,
     LocalDateTime createdAt,
     String createdBy,

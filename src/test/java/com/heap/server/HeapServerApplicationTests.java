@@ -9,7 +9,7 @@ class HeapServerApplicationTests {
     @Test
     void contextLoads() {
         // Verifies the Spring context wires up (entities, repositories,
-        // controllers, filter) without a real DB connection issue at build time.
+        // controllers, security config) without a real DB connection issue at build time.
         // Requires a reachable MySQL instance per application.yml when run.
     }
 }
